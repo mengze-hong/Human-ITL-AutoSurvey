@@ -1,0 +1,268 @@
+:root {
+    --primary-color: #4a6fa5;
+    --secondary-color: #6c8fc7;
+    --light-bg: #f8f9fa;
+    --card-bg: #ffffff;
+    --text-color: #495057;
+}
+
+body {
+    background-color: var(--light-bg);
+    color: var(--text-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container {
+    max-width: 1200px;
+    padding-top: 2rem;
+}
+
+.progress-container {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: var(--card-bg);
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.progress-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.progress-connector {
+    height: 3px;
+    flex-grow: 1;
+    background-color: #e9ecef;
+    min-width: 30px;
+    transition: all 0.3s ease;
+}
+
+.add-section {
+    position: absolute;
+    right: -8px;
+    top: -8px;
+    background: white;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--primary-color);
+    color: var(--primary-color);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.add-section:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.active {
+    background-color: var(--primary-color) !important;
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.2);
+}
+
+#content-iframe {
+    width: 100%;
+    height: calc(100vh - 150px);
+    border: none;
+    background: transparent;
+    border-radius: 10px;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+:root {
+    --primary-color: #4a6fa5;
+    --secondary-color: #6c8fc7;
+    --card-bg: #ffffff;
+    --text-color: #495057;
+}
+
+body {
+    background-color: transparent;
+    color: var(--text-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 0;
+    margin: 0;
+}
+
+.content-header {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    margin-bottom: 1.5rem;
+}
+
+.card-title {
+    font-weight: 600;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.reference-paper {
+    border-left: 3px solid var(--primary-color);
+    padding-left: 15px;
+    margin-bottom: 20px;
+}
+
+.upload-btn {
+    cursor: pointer;
+    color: var(--primary-color);
+}
+
+#generatedContent {
+    min-height: 200px;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    white-space: pre-wrap;
+}
+
+.loading-spinner {
+    display: none;
+    width: 2rem;
+    height: 2rem;
+}
+
+/* Highlighted Text Style */
+.highlight {
+    background-color: red;
+    color: white;
+}
+.comment {
+    display: inline-block;
+    position: relative;
+}
+.comment:hover .comment-tooltip {
+    display: block;
+}
+.comment-tooltip {
+    display: none;
+    position: absolute;
+    left: 0;
+    bottom: 100%;
+    background-color: yellow;
+    padding: 5px;
+    border-radius: 4px;
+    z-index: 1000;
+    white-space: nowrap;
+}
+
+.input-group-text {
+    font-weight: bold;  /* Optional: changes the description appearance */
+}
+
+.loading-spinner {
+    width: 1rem;
+    height: 1rem;
+}
+
+:root {
+    --primary-color: #4a6fa5;
+    --secondary-color: #6c8fc7;
+    --card-bg: #ffffff;
+    --text-color: #495057;
+}
+
+body {
+    background-color: transparent;
+    color: var(--text-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 0;
+    margin: 0;
+}
+
+.content-header {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    margin-bottom: 1.5rem;
+}
+
+.card-title {
+    font-weight: 600;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.editable-content {
+    border: 1px solid #ced4da;
+    padding: 10px;
+    min-height: 200px;
+    background-color: #fff;
+    border-radius: 4px;
+}
+
+.editable-content:empty:before {
+    content: attr(placeholder);
+    color: #6c757d;
+}
+
+.highlighted {
+    background-color: yellow;
+    position: relative;
+}
+
+.comment {
+    border: 1px solid #dee2e6;
+    padding: 5px 10px;
+    margin: 5px 0;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.comment small {
+    color: #6c757d;
+}
+
+.summarize-btn {
+    padding: 4px 8px;
+    font-size: 0.875rem;
+}
+
+.summarize-btn .spinner-border {
+    vertical-align: middle;
+}
