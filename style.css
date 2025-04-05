@@ -69,6 +69,22 @@ body {
     transition: all 0.2s ease;
 }
 
+
+.remove-section {
+    position: absolute;
+    bottom: -5px;
+    right: -10px;
+    cursor: pointer;
+    background: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: red;
+}
+
 .add-section:hover {
     background-color: var(--primary-color);
     color: white;
@@ -265,4 +281,72 @@ body {
 
 .summarize-btn .spinner-border {
     vertical-align: middle;
+}
+
+
+.carousel {
+    position: relative;
+    overflow: hidden;
+}
+
+
+.reference-paper {
+    transition: opacity 0.3s ease;
+}
+
+.reference-paper.active {
+    display: block !important;
+    opacity: 1;
+}
+
+/* Form Select Styling */
+.form-select {
+    border-radius: 6px; /* Matches rounded corners of form-control */
+    border: 1px solid #ced4da; /* Default Bootstrap border color */
+    font-size: 0.9rem; /* Consistent with other inputs */
+    padding: 8px 12px; /* Matches form-control padding */
+    background-color: #fff; /* White background for consistency */
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.075); /* Subtle inner shadow */
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; /* Smooth transitions */}
+
+/* Hover State */
+.form-select:hover {
+    border-color: #b8c6db; /* Slightly darker gray for subtle feedback */
+}
+
+/* Focus State */
+.form-select:focus {
+    border-color: #80bdff; /* Matches Bootstrap primary focus */
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Primary blue glow */
+    outline: none; /* Removes default outline */
+}
+
+/* Option Styling */
+.form-select option {
+    padding: 6px 12px; /* Comfortable spacing for readability */
+    color: #212529; /* Dark text for contrast */
+}
+
+/* Selected Option */
+.form-select option:checked {
+    background-color: #e9ecef; /* Light gray for selected items */
+    color: #212529;
+}
+
+/* Scrollbar Styling for Multiple Select */
+.form-select::-webkit-scrollbar {
+    width: 6px; /* Slim scrollbar */
+}
+
+.form-select::-webkit-scrollbar-thumb {
+    background-color: #adb5bd; /* Muted gray, matches theme */
+    border-radius: 3px;
+}
+
+.form-select::-webkit-scrollbar-thumb:hover {
+    background-color: #6c757d; /* Darker gray on hover */
+}
+
+.form-select::-webkit-scrollbar-track {
+    background-color: #f8f9fa; /* Light background for track */
 }

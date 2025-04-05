@@ -76,6 +76,12 @@
                 </div>
             </div>
 
+            <!-- File Upload for Recovery -->
+            <div class="mb-3">
+                <label for="loadConfigFile" class="form-label">Recover Data from JSON File</label>
+                <input type="file" class="form-control" id="loadConfigFile" accept=".json">
+            </div>
+
             
             <div class="col-12">
                 <div class="card">
@@ -108,85 +114,6 @@
         </div>
     </div>
 
-    <script>
-        // Get current context data from form fields
-        function getContextData() {
-            return {
-                title: document.getElementById('paperTitle').value,
-                abstract: document.getElementById('abstract').value,
-                keywords: document.getElementById('keywords').value.split(',').map(k => k.trim()).filter(k => k),
-                paperType: document.getElementById('paperType').value,
-                style: {
-                    formalism: document.getElementById('formalism').value,
-                    audience: document.getElementById('audience').value,
-                    tone: document.getElementById('tone').value,
-                    example: document.getElementById('writingExample').value
-                },
-                apiKey: document.getElementById('apiKey').value,
-                timestamp: new Date().toISOString()
-            };
-        }
-
-        // Save to localStorage via parent window
-        function saveToLocalStorage() {
-            const config = getContextData();
-            window.parent.postMessage({
-                action: 'saveState',
-                page: 'context',
-                data: config
-            }, '*');
-        }
-
-        // Save to local JSON file
-        function saveToJsonFile() {
-            const config = getContextData();
-            const jsonContent = JSON.stringify(config, null, 2);
-            const blob = new Blob([jsonContent], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `research_context_${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        }
-
-        // Save and continue handler
-        function saveAndContinue() {
-            saveToLocalStorage();  // Save to localStorage
-            saveToJsonFile();      // Download JSON file
-            window.parent.postMessage({ action: 'navigate', page: 'section' }, '*');
-        }
-
-        // Load context data into fields
-        function loadContextData(data) {
-            document.getElementById('paperTitle').value = data.title || '';
-            document.getElementById('abstract').value = data.abstract || '';
-            document.getElementById('keywords').value = Array.isArray(data.keywords) ? data.keywords.join(', ') : '';
-            document.getElementById('paperType').value = data.paperType || 'survey';
-            document.getElementById('apiKey').value = data.apiKey || '';
-            
-            if (data.style) {
-                document.getElementById('formalism').value = data.style.formalism || 'medium';
-                document.getElementById('audience').value = data.style.audience || 'researchers';
-                document.getElementById('tone').value = data.style.tone || 'neutral';
-                document.getElementById('writingExample').value = data.style.example || '';
-            }
-        }
-
-        // Wait for DOM to load, then listen for data
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('input, textarea, select').forEach(element => {
-                element.addEventListener('change', saveToLocalStorage);
-            });
-
-            window.addEventListener('message', (event) => {
-                if (event.data.action === 'loadContextData') {
-                    loadContextData(event.data.data.context);
-                }
-            });
-        });
-    </script>
+    <script src="script/context.js"></script>
 </body>
 </html>

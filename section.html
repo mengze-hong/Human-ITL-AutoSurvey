@@ -10,7 +10,10 @@
 </head>
 <body>
     <div class="container-fluid p-4">
-        <h3 class="content-header">Section Generator</h3>
+        <div class="d-flex align-items-center mb-4">
+            <h3 class="content-header me-2" id="sectionName">Section 1</h3>
+            <i class="bi bi-pencil-square text-primary" style="cursor: pointer;" onclick="SectionManager.editSectionName()"></i>
+        </div>
         
         <div class="row g-4">
             <!-- Section Configuration -->
@@ -19,8 +22,8 @@
                     <div class="card-body">
                         <h5 class="card-title text-primary mb-4">Section Configuration</h5>
                         <div class="mb-3">
-                            <label for="sectionContext" class="form-label">Section Context</label>
-                            <textarea class="form-control" id="sectionContext" rows="3" placeholder="Describe what this section should cover..."></textarea>
+                            <label class="form-label" for="sectionContext">Section Heading</label>
+                            <input type="text" id="sectionContext" class="form-control reference-title" placeholder="Paper title">
                         </div>
                         <div class="mb-3">
                             <label for="keyPoints" class="form-label">Key Points (one per line)</label>
@@ -34,61 +37,138 @@
                                 <option value="long">Long (6+ paragraphs)</option>
                             </select>
                         </div>
+                        <div class="mb-3">
+                            <label for="contextSections" class="form-label">Context Sections (hold Ctrl/Cmd to select multiple)</label>
+                            <select class="form-select" id="contextSections" style="height: 82px;" multiple>
+                                <!-- Options populated dynamically -->
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            
-            <!-- Reference Papers -->
+            <!-- Reference Papers (Carousel Style) -->
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title text-primary mb-4">Reference Papers</h5>
-                        <div id="referencePapersContainer">
-                            <div class="reference-paper">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6>Reference Paper #1</h6>
-                                    <i class="bi bi-trash text-danger" style="cursor: pointer;" onclick="SectionManager.removeReference(this)"></i>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Title</label>
-                                    <input type="text" class="form-control reference-title" placeholder="Paper title">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Citation</label>
-                                    <input type="text" class="form-control reference-citation" placeholder="Citation format">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Abstract</label>
-                                    <textarea class="form-control reference-abstract" rows="3" placeholder="Paper abstract"></textarea>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <i class="bi bi-paperclip upload-btn me-2" title="Upload PDF"></i>
-                                        <small class="text-muted">PDF upload coming soon</small>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="card-title text-primary m-0">Reference Papers</h5>
+                            <small class="text-muted" id="total">1</small>
+                            <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#bulkReferenceModal">
+                                <i class="bi bi-plus-square"></i> Bulk Add
+                            </button>
+                        </div>
+                        <div id="referencePapersContainer" class="position-relative">
+                            <!-- Carousel Container -->
+                            <div id="referenceCarousel" class="carousel">
+                                <div class="reference-paper" style="display: none;" data-index="0">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6>Reference Paper #1</h6>
+                                        <i class="bi bi-trash text-danger" style="cursor: pointer;" onclick="SectionManager.removeReference(this)"></i>
                                     </div>
-                                    <button class="btn btn-outline-info btn-sm summarize-btn" onclick="SectionManager.summarizeReference(this)">
-                                        <i class="bi bi-file-text me-1"></i> Summarize
-                                        <span class="spinner-border spinner-border-sm ms-1" role="status" style="display: none;"></span>
-                                    </button>
+                                    <div class="mb-3">
+                                        <label class="form-label">Title</label>
+                                        <input type="text" class="form-control reference-title" placeholder="Paper title">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Citation</label>
+                                        <input type="text" class="form-control reference-citation" placeholder="Citation format">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Abstract</label>
+                                        <textarea class="form-control reference-abstract" rows="3" placeholder="Paper abstract"></textarea>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="bi bi-paperclip upload-btn me-2" title="Upload PDF"></i>
+                                            <small class="text-muted">PDF upload coming soon</small>
+                                        </div>
+                                        <button class="btn btn-outline-info btn-sm summarize-btn" onclick="SectionManager.summarizeReference(this)">
+                                            <i class="bi bi-file-text me-1"></i> Summarize
+                                            <span class="spinner-border spinner-border-sm ms-1" role="status" style="display: none;"></span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
+                            
+
+                            <!-- Navigation Arrows -->
+                            <button class="btn btn-outline-secondary position-absolute start-0 translate-middle-y" 
+                                    id="prevReference" 
+                                    onclick="SectionManager.prevReference()"
+                                    style="z-index: 1; display: none; top: 105%;">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                            <button class="btn btn-outline-secondary position-absolute end-0 translate-middle-y" 
+                                    id="nextReference" 
+                                    onclick="SectionManager.nextReference()"
+                                    style="z-index: 1; display: none; top: 105%;">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
                         </div>
-                        <button class="btn btn-outline-primary mt-2" onclick="SectionManager.addReference()">
-                            <i class="bi bi-plus-circle"></i> Add Reference Paper
-                        </button>
+                        <div class="d-flex justify-content-center mt-2">
+                            <button class="btn btn-outline-primary" onclick="SectionManager.addReference()">
+                                <i class="bi bi-plus-circle"></i> Add Reference Paper
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal for Bulk Reference Input -->
+                <div class="modal fade" id="bulkReferenceModal" tabindex="-1" aria-labelledby="bulkReferenceModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="bulkReferenceModalLabel">Add Multiple References</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Enter references in the format: <code>\cite{key}Title...Abstract...</code> (one per paragraph)</p>
+                                <textarea class="form-control" id="bulkReferenceInput" rows="10" placeholder="Example:\n\\cite{t100}Title 1...Abstract 1...\n\\cite{t101}Title 2...Abstract 2..."></textarea>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" onclick="SectionManager.addBulkReferences()">Add References</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <!-- API Key and Generate/Save Buttons -->
-                
-            <button class="btn btn-primary btn-lg w-100 d-flex align-items-center justify-content-center" onclick="SectionManager.generateSection()">
-                <span id="generateText">Generate Section</span>
-                <div class="spinner-border spinner-border-sm loading-spinner text-light ms-2" role="status" id="loadingSpinner" style="display: none;">
-                    <span class="visually-hidden">Loading...</span>
+            <!-- Generation Controls -->
+            <div class="col-12">
+                <div class="d-flex justify-content-between mb-3">
+                    <button class="btn btn-outline-primary" onclick="SectionManager.generateOutline()">
+                        <span id="outlineText">Generate Outline</span>
+                        <span class="spinner-border spinner-border-sm ms-1" role="status" id="outlineSpinner" style="display: none;"></span>
+                    </button>
+                    <button class="btn btn-outline-primary" onclick="SectionManager.allocateReferences()">
+                        <span id="allocateText">Allocate References</span>
+                        <span class="spinner-border spinner-border-sm ms-1" role="status" id="allocateSpinner" style="display: none;"></span>
+                    </button>
+                    <button class="btn btn-primary" onclick="SectionManager.generateSection()">
+                        <span id="generateText">Generate Section</span>
+                        <span class="spinner-border spinner-border-sm ms-1" role="status" id="loadingSpinner" style="display: none;"></span>
+                    </button>
                 </div>
-            </button>
+            </div>
+
+            <!-- Outline and Allocated References -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary mb-4">Generated Outline</h5>
+                        <textarea class="form-control" id="generatedOutline" rows="6" placeholder="Generated outline will appear here..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary mb-4">Allocated References</h5>
+                        <textarea id="allocatedReferences" class="form-control" rows="6" placeholder="Allocated references will appear here..."></textarea>
+                    </div>
+                </div>
             </div>
             
             <!-- Generated Content -->
@@ -105,431 +185,15 @@
             </div>
 
             <div class="d-flex justify-content-end mt-4">
-                <button class="btn btn-primary" onclick="saveAndContinue()">
+                <button class="btn btn-primary" onclick="SectionManager.saveAndContinue()">
                     <i class="bi bi-save me-2"></i> Save & Continue
                 </button>
             </div>
         </div>
+    </div>
 
-
-
-    <script>
-        // Wait for DOM to load, then listen for data
-        document.addEventListener('DOMContentLoaded', () => {
-            window.addEventListener('message', (event) => {
-                if (event.data.action === 'loadContextData') {
-                    const data = event.data.data;
-                    SectionManager.config = data;
-                    SectionManager.currentSectionId = event.data.sectionId || 'section-1'; // Set sectionId from parent
-                    SectionManager.apiKey = data.context.apiKey || '';
-                    SectionManager.loadSectionData(); // Load data for this section
-                    console.log("Received config data:", SectionManager.config, "Section ID:", SectionManager.currentSectionId);
-                }
-            });
-        });
-    
-        const SectionManager = {
-            config: null,
-            currentSectionId: 'section-1',
-            loading: false,
-            apiKey: '',
-            comments: [],
-    
-            init() {
-                this.setupEventListeners();
-                window.addEventListener('message', (e) => this.handleConfigUpdate(e));
-            },
-    
-            handleConfigUpdate(event) {
-                if (event.data.type === 'CONFIG_UPDATE') {
-                    this.config = event.data.config;
-                    this.loadSectionData();
-                    this.loadContextData();
-                }
-            },
-    
-            loadContextData() {
-                this.apiKey = this.config.context.apiKey || '';
-            },
-    
-            loadSectionData() {
-                const sectionData = this.config.sections?.[this.currentSectionId] || {};
-                
-                document.getElementById('sectionContext').value = sectionData.sectionContext || '';
-                document.getElementById('keyPoints').value = sectionData.keyPoints?.join('\n') || '';
-                document.getElementById('sectionLength').value = sectionData.length || 'medium';
-                document.getElementById('generatedContent').textContent = 
-                    sectionData.generatedContent || 'Generated content will appear here...';
-                
-                const refContainer = document.getElementById('referencePapersContainer');
-                refContainer.innerHTML = '';
-                
-                if (sectionData.references?.length > 0) {
-                    sectionData.references.forEach(ref => this.addReference(ref));
-                } else {
-                    this.addReference();
-                }
-            },
-    
-            getSectionData() {
-                return {
-                    sectionContext: document.getElementById('sectionContext').value,
-                    keyPoints: document.getElementById('keyPoints').value.split('\n').filter(p => p.trim()),
-                    length: document.getElementById('sectionLength').value,
-                    references: this.getReferences(),
-                    generatedContent: document.getElementById('generatedContent').textContent,
-                    timestamp: new Date().toISOString()
-                };
-            },
-    
-            saveToLocalStorage() {
-                const sectionData = this.getSectionData();
-                console.log("Section data:", sectionData);  
-                window.parent.postMessage({
-                    action: 'saveState',
-                    page: 'sections',
-                    data: { [this.currentSectionId]: sectionData }
-                }, '*');
-            },
-    
-            saveToJsonFile() {
-                const current_data = this.getSectionData();
-                const sectionData = {
-                    context: this.config.context || {}, // Include the context data
-                    sections: {
-                        [this.currentSectionId]: current_data // Current section data
-                    }
-                };
-                
-                // Create JSON string with pretty formatting
-                const jsonContent = JSON.stringify(sectionData, null, 2);
-                const blob = new Blob([jsonContent], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `survey_config_${this.currentSectionId}_${new Date().toISOString().split('T')[0]}.json`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
-            },
-    
-            saveAndContinue() {
-                this.saveToLocalStorage();
-                this.saveToJsonFile();
-                window.parent.postMessage({ action: 'navigate', page: 'section' }, '*'); // Stay on section for next one
-            },
-    
-            getReferences() {
-                return Array.from(document.querySelectorAll('.reference-paper')).map(ref => ({
-                    title: ref.querySelector('.reference-title').value,
-                    citation: ref.querySelector('.reference-citation').value,
-                    abstract: ref.querySelector('.reference-abstract').value
-                }));
-            },
-    
-            addReference(refData = {}) {
-                const refCount = document.querySelectorAll('.reference-paper').length + 1;
-                const refHTML = `
-                    <div class="reference-paper">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h6>Reference Paper #${refCount}</h6>
-                            <i class="bi bi-trash text-danger" style="cursor: pointer;" onclick="SectionManager.removeReference(this)"></i>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Title</label>
-                            <input type="text" class="form-control reference-title" placeholder="Paper title" value="${refData.title || ''}">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Citation</label>
-                            <input type="text" class="form-control reference-citation" placeholder="Citation format" value="${refData.citation || ''}">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Abstract</label>
-                            <textarea class="form-control reference-abstract" rows="3" placeholder="Paper abstract">${refData.abstract || ''}</textarea>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="bi bi-paperclip upload-btn me-2" title="Upload PDF"></i>
-                                <small class="text-muted">PDF upload coming soon</small>
-                            </div>
-                            <button class="btn btn-outline-info btn-sm summarize-btn" onclick="SectionManager.summarizeReference(this)">
-                                <i class="bi bi-file-text me-1"></i> Summarize
-                                <span class="spinner-border spinner-border-sm ms-1" role="status" style="display: none;"></span>
-                            </button>
-                        </div>
-                    </div>
-                `;
-                document.getElementById('referencePapersContainer').insertAdjacentHTML('beforeend', refHTML);
-                this.saveToLocalStorage();
-            },
-        
-            async summarizeReference(button) {
-                const referencePaper = button.closest('.reference-paper');
-                const abstractField = referencePaper.querySelector('.reference-abstract');
-                const titleField = referencePaper.querySelector('.reference-title').value;
-                const currentAbstract = abstractField.value;
-        
-                if (!titleField && !currentAbstract) {
-                    alert("Please provide at least a title or abstract to summarize.");
-                    return;
-                }
-        
-                const spinner = button.querySelector('.spinner-border');
-                spinner.style.display = 'inline-block';
-                button.disabled = true;
-        
-                try {
-                    const prompt = this.buildSummaryPrompt(titleField, currentAbstract);
-                    const summary = await this.callLLMAPI(prompt);
-                    abstractField.value = summary;
-                    this.saveToLocalStorage();
-                    this.saveToJsonFile();
-                } catch (error) {
-                    console.error("Summarization error:", error);
-                    abstractField.value = `Error: ${error.message}`;
-                } finally {
-                    spinner.style.display = 'none';
-                    button.disabled = false;
-                }
-            },
-        
-            buildSummaryPrompt(title, abstract) {
-                return `[Role] Expert summarizer
-        [Task] Summarize the following research paper content into a concise abstract (100-150 words).
-        [Content]
-        Title: ${title || 'Untitled'}
-        Abstract: ${abstract || 'No abstract provided'}
-        
-        [Instructions]
-        1. Produce a clear, concise summary capturing the main points.
-        2. Use an academic tone.
-        3. If only a title is provided, infer a reasonable summary based on typical content for that title.
-        4. Avoid adding fictitious details beyond reasonable inference.
-        
-        [Output Format]
-        <Summary>`;
-            },
-    
-            removeReference(element) {
-                if (document.querySelectorAll('.reference-paper').length > 1) {
-                    element.closest('.reference-paper').remove();
-                    this.renumberReferences();
-                    this.saveToLocalStorage();
-                } else {
-                    alert("You must have at least one reference paper.");
-                }
-            },
-    
-            renumberReferences() {
-                document.querySelectorAll('.reference-paper h6').forEach((header, index) => {
-                    header.textContent = `Reference Paper #${index + 1}`;
-                });
-            },
-    
-            async generateSection() {
-                if (this.loading) return;
-                
-                this.loading = true;
-                const generateBtn = document.querySelector('.btn-primary.btn-lg');
-                const generateText = document.getElementById('generateText');
-                const loadingSpinner = document.getElementById('loadingSpinner');
-                
-                generateText.textContent = 'Generating...';
-                loadingSpinner.style.display = 'inline-block';
-                generateBtn.disabled = true;
-    
-                try {
-                    const prompt = this.buildPrompt();
-                    const generatedContent = await this.callLLMAPI(prompt);
-                    
-                    document.getElementById('generatedContent').textContent = generatedContent;
-                    this.saveToLocalStorage();
-                    this.saveToJsonFile();
-                } catch (error) {
-                    console.error("Generation error:", error);
-                    document.getElementById('generatedContent').innerHTML = 
-                        `<div class="alert alert-danger">Error: ${error.message}</div>`;
-                } finally {
-                    generateText.textContent = 'Generate Section';
-                    loadingSpinner.style.display = 'none';
-                    generateBtn.disabled = false;
-                    this.loading = false;
-                }
-            },
-
-            addComment() {
-                const generatedContent = document.getElementById('generatedContent');
-                const selection = window.getSelection();
-                if (selection.rangeCount > 0 && selection.toString().trim()) {
-                    const range = selection.getRangeAt(0);
-                    const selectedText = selection.toString();
-                    const commentText = prompt("Enter your comment for the highlighted text:", "");
-                    if (commentText) {
-                        // Wrap selected text in a span with a highlight class
-                        const span = document.createElement('span');
-                        span.className = 'highlighted';
-                        span.dataset.commentId = this.comments.length; // Assign an ID to link with comment
-                        range.surroundContents(span);
-    
-                        // Store the comment
-                        this.comments.push({
-                            id: this.comments.length,
-                            text: selectedText,
-                            comment: commentText,
-                            timestamp: new Date().toISOString()
-                        });
-    
-                        this.renderComments();
-                        this.saveToLocalStorage();
-                        selection.removeAllRanges(); // Clear selection
-                    }
-                } else {
-                    alert("Please highlight some text to comment on.");
-                }
-            },
-    
-            renderComments() {
-                const commentContainer = document.getElementById('commentContainer');
-                commentContainer.innerHTML = '';
-                this.comments.forEach(comment => {
-                    const commentDiv = document.createElement('div');
-                    commentDiv.className = 'comment';
-                    commentDiv.innerHTML = `
-                        <strong>Highlighted Text:</strong> "${comment.text}"<br>
-                        <strong>Comment:</strong> ${comment.comment}<br>
-                        <small>${new Date(comment.timestamp).toLocaleString()}</small>
-                    `;
-                    commentContainer.appendChild(commentDiv);
-                });
-            },
-    
-            regenerateWithComments() {
-                if (this.loading) return;
-                this.loading = true;
-                const generateBtn = document.querySelector('.btn-primary.btn-lg');
-                const generateText = document.getElementById('generateText');
-                const loadingSpinner = document.getElementById('loadingSpinner');
-                
-                generateText.textContent = 'Regenerating...';
-                loadingSpinner.style.display = 'inline-block';
-                generateBtn.disabled = true;
-    
-                try {
-                    const prompt = this.buildPrompt(true); // Pass true to include comments
-                    this.callLLMAPI(prompt).then(generatedContent => {
-                        document.getElementById('generatedContent').innerHTML = generatedContent;
-                        this.comments = []; // Clear comments after regeneration
-                        this.renderComments();
-                        this.saveToLocalStorage();
-                        this.saveToJsonFile();
-                    }).finally(() => {
-                        generateText.textContent = 'Generate Section';
-                        loadingSpinner.style.display = 'none';
-                        generateBtn.disabled = false;
-                        this.loading = false;
-                    });
-                } catch (error) {
-                    console.error("Regeneration error:", error);
-                    document.getElementById('generatedContent').innerHTML = 
-                        `<div class="alert alert-danger">Error: ${error.message}</div>`;
-                }
-            },
-    
-            buildPrompt(includeComments = false) {
-                const sectionContext = document.getElementById('sectionContext').value;
-                const keyPoints = document.getElementById('keyPoints').value.split('\n').filter(p => p.trim());
-                const length = document.getElementById('sectionLength').value;
-                const references = this.getReferences();
-                const paperContext = this.config || {};
-                const currentContent = document.getElementById('generatedContent').innerText;
-    
-                const lengthMap = { short: "1-2 paragraphs", medium: "3-5 paragraphs", long: "6+ paragraphs" };
-                const refsText = references.map(ref => `- ${ref.title} (${ref.citation})\n  ${ref.abstract.substring(0, 150)}...`).join('\n\n');
-    
-                let prompt = `[Role] Expert academic writer composing a research paper section
-    [Paper Context]
-    Title: ${paperContext.title || 'Untitled'}
-    Type: ${paperContext.paperType || 'survey paper'}
-    Keywords: ${paperContext.keywords?.join(', ') || 'none'}
-    Style: ${paperContext.style?.formalism || 'Medium'} formalism for ${paperContext.style?.audience || 'researchers'}
-    
-    [Section Requirements]
-    Purpose: ${sectionContext}
-    Must Include:
-    ${keyPoints.map(p => `• ${p}`).join('\n')}
-    Length: ${lengthMap[length]}
-    References:
-    ${refsText}`;
-    
-                if (includeComments && this.comments.length > 0) {
-                    prompt += `\n\n[Current Content and Feedback]
-    Current Generated Content:
-    ${currentContent}
-    
-    User Comments:
-    ${this.comments.map(c => `- "${c.text}": ${c.comment}`).join('\n')}
-    
-    [Additional Instructions]
-    Revise the current content based on the user comments provided above. Maintain the original structure and requirements while addressing the feedback.`;
-                } else {
-                    prompt += `\n\n[Instructions]
-    1. Write in ${paperContext.style?.tone || 'neutral'} academic tone
-    2. Use ${paperContext.style?.formalism || 'medium'} formalism
-    3. Cite sources as [Author, Year]
-    4. Structure content logically
-    5. Include smooth transitions`;
-                }
-    
-                prompt += `\n\n[Output Format]
-    <Section Heading>
-    <Well-structured content>
-    <Transition to next section>`;
-                return prompt;
-            },
-    
-            async callLLMAPI(prompt) {
-                if (!this.apiKey) throw new Error("Please enter your API key");
-    
-                const response = await fetch('https://api.xty.app/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${this.apiKey}`
-                    },
-                    body: JSON.stringify({
-                        model: 'gpt-4',
-                        messages: [{ role: 'user', content: prompt }],
-                        temperature: 0.7
-                    })
-                });
-    
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error?.message || 'API request failed');
-                }
-    
-                return (await response.json()).choices[0].message.content;
-            },
-    
-            setupEventListeners() {
-                document.querySelectorAll('#sectionContext, #keyPoints, #sectionLength').forEach(el => {
-                    el.addEventListener('change', () => {
-                        this.saveToLocalStorage();
-                    });
-                });
-                
-                document.getElementById('referencePapersContainer').addEventListener('change', (e) => {
-                    if (e.target.classList.contains('reference-title') || 
-                        e.target.classList.contains('reference-citation') ||
-                        e.target.classList.contains('reference-abstract')) {
-                        this.saveToLocalStorage();
-                    }
-                });
-            }
-        };
-    
-        document.addEventListener('DOMContentLoaded', () => SectionManager.init());
-    </script>
+    <script src="script/section.js"></script>
+    <script src="script/generator.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
