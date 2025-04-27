@@ -1,28 +1,34 @@
-const sectionModal = new bootstrap.Modal('#sectionModal');
-let currentParentId = '';
-let sectionCount = 1;
-let currentStage = 'context';
+const sectionModal = new bootstrap.Modal('#sectionModal');   //创建一个 Bootstrap 模态框对象，绑定 ID 为 #sectionModal 的元素，用来添加节（section）时弹出窗口。
+let currentParentId = '';   //记录当前在哪个 section 后面添加新的 section。
+let sectionCount = 1;  //初始化节的数量为1，后续添加节会+1。
+let currentStage = 'context';   //当前所处的阶段，比如 'context'、'section'、'review'，用于控制流程。
 
-// Save config to localStorage
+// Save config to localStorage  把配置对象 surveyConfig 保存到浏览器本地存储 localStorage，并更新最后修改时间。
 function saveConfig() {
     window.surveyConfig.meta.lastModified = new Date().toISOString();
     localStorage.setItem('surveyConfig', JSON.stringify(window.surveyConfig));
 }
 
-// Update progress bar styling based on current stage
+// Update progress bar styling based on current stage 更新进度条的显示样式
 function updateProgress() {
+    // 更新圆圈（阶段标志）和连接线的样式，表示当前进度。
     const circles = document.querySelectorAll('.progress-circle');
+    // console.log("circles", circles)
     const connectors = document.querySelectorAll('.progress-connector');
+    // console.log("connectors", connectors)
     
+    // 清空所有圆圈和连线的高亮样式。
     circles.forEach(circle => circle.classList.remove('bg-success', 'active'));
     connectors.forEach(connector => connector.classList.remove('bg-success'));
     
+    // 1.如果当前阶段是 context（背景信息），就高亮第一个圆圈。
     if (currentStage === 'context') {
         circles[0].classList.add('bg-success', 'active');
     } else if (currentStage === 'section') {
+        // 2.如果是节阶段，则找到当前节的 DOM 元素。
         const activeSectionId = window.surveyConfig.meta.currentSectionId;
         const activeCircle = document.querySelector(`#section-${activeSectionId}`);
-        if (activeCircle) {
+        if (activeCircle) {   //2.2将当前节及之前的圆圈设置为“已完成”，当前节为“激活”状态。
             circles.forEach((circle, index) => {
                 if (index <= Array.from(circles).indexOf(activeCircle)) {
                     circle.classList.add('bg-success');
@@ -37,14 +43,14 @@ function updateProgress() {
                 }
             });
         }
-    } else if (currentStage === 'review') {
+    } else if (currentStage === 'review') {   //如果是最后的复查阶段，所有圆圈都高亮，最后一个圆圈为激活状态。
         circles.forEach(circle => circle.classList.add('bg-success'));
         connectors.forEach(connector => connector.classList.add('bg-success'));
         circles[circles.length - 1].classList.add('active');
     }
 }
 
-// Show modal for adding a section
+// Show modal for adding a section  显示添加节的模态框   点击加号时弹出模态框，并记录它是在哪个节后面添加的。
 function showAddModal(e, parentId) {
     e.stopPropagation();
     currentParentId = parentId;
@@ -53,7 +59,9 @@ function showAddModal(e, parentId) {
 
 // Load configuration from localStorage and rebuild progress bar
 function loadConfig() {
+    // 从本地读取之前保存的配置。
     const savedConfig = localStorage.getItem('surveyConfig');
+    // 如果没有保存过，就用默认值初始化。
     window.surveyConfig = savedConfig ? JSON.parse(savedConfig) : {
         meta: {
             currentStage: 'context',
@@ -71,7 +79,7 @@ function loadConfig() {
     rebuildProgressBar();
 }
 
-// Rebuild the progress bar entirely
+// Rebuild the progress bar entirely    重新生成进度条。
 function rebuildProgressBar() {
     const container = document.getElementById('progress-container');
     container.innerHTML = ''; // Clear existing content
@@ -125,8 +133,9 @@ function rebuildProgressBar() {
     updateProgress(); // Apply styling after rebuilding
 }
 
-// Add a new section
+// Add a new section   添加节的逻辑
 function addSection() {
+    //  提交模态框后添加节：
     const type = document.getElementById('sectionType').value;
     const name = document.getElementById('sectionName').value.trim();
     
@@ -168,7 +177,7 @@ function addSection() {
     document.getElementById('sectionName').value = '';
 }
 
-// Remove a section
+// Remove a section 删除节的逻辑
 function removeSection(e, sectionId) {
     e.stopPropagation(); // Prevent triggering the section navigation
 
@@ -211,7 +220,7 @@ function removeSection(e, sectionId) {
     navigateTo(currentStage, window.surveyConfig.meta.currentSectionId);
 }
 
-// Navigate to a page or section
+// Navigate to a page or section  // 导航切换不同页面或节 跳转页面，比如 context.html、section.html 等。
 function navigateTo(page, sectionId = null) {
     currentStage = page;
     window.surveyConfig.meta.currentStage = page;
@@ -233,8 +242,9 @@ function navigateTo(page, sectionId = null) {
     };
 }
 
-// Handle messages from iframe
+// Handle messages from iframe  iframe 的通信监听器
 window.addEventListener('message', (event) => {
+    // 接收子页面（iframe）传来的数据进行保存。
     if (event.data.action === 'saveState') {
         if (event.data.page === 'context') {
             window.surveyConfig.context = event.data.data;
@@ -253,7 +263,7 @@ window.addEventListener('message', (event) => {
     }
 });
 
-// Initialize - Force loading context iframe on startup
+// Initialize - Force loading context iframe on startup  页面加载时自动启动  默认打开当前 section 页面。
 document.addEventListener('DOMContentLoaded', () => {
     loadConfig();
     navigateTo('section', window.surveyConfig.meta.currentSectionId);

@@ -4,9 +4,12 @@ const SectionManager = {
     comments: [],
     generator: null,
     currentReferenceIndex: 0,
+    promptDataMap: {},
+
 
     init() {
         this.generator = new SectionGenerator();
+        // console.log("this.generator", this.generator)
         this.setupEventListeners();
         window.addEventListener('message', (event) => {
             if (event.data.action === 'loadContextData') {
@@ -16,6 +19,8 @@ const SectionManager = {
                 this.loadSectionData();
             }
         });
+        // Johanchen增加
+        this.setupPromptPopovers()
     },
 
     loadSectionData() {
@@ -61,22 +66,46 @@ const SectionManager = {
 
     editSectionName() {
         const currentName = document.getElementById('sectionName').textContent;
+        // prompt 是 JavaScript 内置的浏览器函数，用来：弹出一个对话框，让用户输入内容，并返回用户输入的字符串
         const newName = prompt("Enter new section name:", currentName);
         if (newName && newName !== currentName) {
             document.getElementById('sectionName').textContent = newName;
             this.saveSectionData();
         }
     },
+    async generateKeyPoints() {
+        const keyPointsBtn = document.querySelector('#keyPointsText').parentElement;
+        const keyPointsText = document.getElementById('keyPointsText');
+        const keyPointsSpinner = document.getElementById('keyPointsSpinner');
 
+        keyPointsText.textContent = 'Generating keyPoints...';
+        keyPointsSpinner.style.display = 'inline-block';
+        keyPointsBtn.disabled = true;
+
+        try {
+            const sectionData = this.getSectionData();
+            sectionData.supplementalContext = this.getSupplementalContext();
+            const keyPoints = await this.generator.generateKeyPoints(sectionData, this.config.context, this.getReferences());
+            document.getElementById('keyPoints').value = keyPoints.output;
+            this.saveSectionData();
+        } catch (error) {
+            console.error("keyPoints generation error:", error);
+            document.getElementById('keyPoints').value = `Error: ${error.message}`;
+        } finally {
+            keyPointsText.textContent = 'Generate keyPoints';
+            keyPointsSpinner.style.display = 'none';
+            keyPointsBtn.disabled = false;
+        }
+    },
     getSectionData() {
         const contextSections = Array.from(document.getElementById('contextSections').selectedOptions).map(option => option.value);
         return {
             name: document.getElementById('sectionName').textContent,
-            sectionContext: document.getElementById('sectionContext').value,
-            keyPoints: document.getElementById('keyPoints').value.split('\n').filter(p => p.trim()),
+            sectionContext: document.getElementById('sectionContext').value,   //标题
+            keyPoints: document.getElementById('keyPoints').value.split('\n').filter(p => p.trim()),  //标题下面的子标题  关键点
             length: document.getElementById('sectionLength').value,
-            contextSections: contextSections,
-            references: this.getReferences(),
+            contextSections: contextSections,  // 关联的引用
+            references: this.getReferences(),    //引用参考文档
             outline: document.getElementById('generatedOutline').value,
             allocatedReferences: document.getElementById('allocatedReferences').textContent,
             generatedContent: document.getElementById('generatedContent').textContent,
@@ -103,11 +132,11 @@ const SectionManager = {
     saveSectionData() {
         const sectionData = this.getSectionData();
         window.parent.postMessage({
-            action: 'saveState',
-            page: 'section',
-            sectionId: this.currentSectionId,
-            data: sectionData
-        }, '*');
+            action: 'saveState',  //保存的类型
+            page: 'section',  //保存的页面
+            sectionId: this.currentSectionId,  //当前段落的ID
+            data: sectionData  //整理后的数据
+        }, '*');    //不限制消息发送给谁（不建议生产中使用 *，因为安全性较低）。推荐写成：window.parent.postMessage(msg, 'https://your-domain.com')
     },
 
     saveAndContinue() {
@@ -341,6 +370,70 @@ const SectionManager = {
             nextBtn.style.display = 'none';
         }
     },
+    initPopovers() {
+        const popoverTriggerList = document.querySelectorAll('.prompt-btn');
+
+        popoverTriggerList.forEach(function (el) {
+            new bootstrap.Popover(el, {
+                content: () => el.value,  // 每次弹出时从 value 获取
+                html: true
+            });
+
+            el.addEventListener("click", function () {
+                const val = el.value || "";
+                if (el.dataset.type === "outline") {
+                    document.getElementById("generatedOutline").value = val;
+                } else if (el.dataset.type === "references") {
+                    document.getElementById("allocatedReferences").value = val;
+                }
+            });
+        });
+    },
+    // getPromptData(promptdata) {
+    //      // let serverData = "这是后端传来的内容";
+    //      const btn = document.getElementById('prompt-btn');
+    //      const popover = new bootstrap.Popover(btn, {
+    //          content: promptdata || '暂无内容',
+    //          trigger: 'click',
+    //          placement: 'right'
+    //      });
+ 
+    //      btn.addEventListener('click', () => {
+    //          popover.show();
+    //      });
+    // },
+    setupPromptPopovers() {
+        document.querySelectorAll('button[data-type]').forEach((btn) => {
+            const type = btn.getAttribute('data-type');
+            const promptData = this.promptDataMap[type] || '';
+    
+            btn.setAttribute('tabindex', '0');
+    
+            // 清除旧的 Popover（避免重复）
+            const oldInstance = bootstrap.Popover.getInstance(btn);
+            if (oldInstance) oldInstance.dispose();
+    
+            const popover = new bootstrap.Popover(btn, {
+                content: promptData,
+                trigger: 'focus',
+                placement: 'right',
+                html: false
+            });
+    
+            btn.addEventListener('shown.bs.popover', () => {
+                const popoverEl = document.querySelector('.popover');
+                if (popoverEl) {
+                    popoverEl.style.maxWidth = '400px';
+                    popoverEl.style.width = '400px';
+                }
+            });
+    
+            // 保存到本地
+            localStorage.setItem(`promptData-${type}`, promptData);
+        });
+    },
+    
+    
 
     async summarizeReference(button) {
         const referencePaper = button.closest('.reference-paper');
@@ -370,7 +463,6 @@ const SectionManager = {
             button.disabled = false;
         }
     },
-
     async generateOutline() {
         const outlineBtn = document.querySelector('#outlineText').parentElement;
         const outlineText = document.getElementById('outlineText');
@@ -384,7 +476,10 @@ const SectionManager = {
             const sectionData = this.getSectionData();
             sectionData.supplementalContext = this.getSupplementalContext();
             const outline = await this.generator.generateOutline(sectionData, this.config.context, this.getReferences());
-            document.getElementById('generatedOutline').value = outline;
+            // 点击prompt按钮弹出内容
+            this.promptDataMap.outline = outline.input;
+            this.setupPromptPopovers()
+            document.getElementById('generatedOutline').value = outline.output;
             this.saveSectionData();
         } catch (error) {
             console.error("Outline generation error:", error);
@@ -413,7 +508,11 @@ const SectionManager = {
             const sectionData = this.getSectionData();
             sectionData.supplementalContext = this.getSupplementalContext();
             const allocatedRefs = await this.generator.allocateReferences(outline, this.getReferences(), sectionData);
-            document.getElementById('allocatedReferences').textContent = allocatedRefs;
+            // 点击prompt按钮弹出内容
+            this.promptDataMap.references = allocatedRefs.input;
+            this.setupPromptPopovers()
+
+            document.getElementById('allocatedReferences').textContent = allocatedRefs.output;
             this.saveSectionData();
         } catch (error) {
             console.error("Reference allocation error:", error);
@@ -446,7 +545,10 @@ const SectionManager = {
             const sectionData = this.getSectionData();
             sectionData.supplementalContext = this.getSupplementalContext();
             const generatedContent = await this.generator.generateSection(outline, allocatedRefs, sectionData, this.config.context);
-            document.getElementById('generatedContent').textContent = generatedContent;
+            // 点击prompt按钮弹出内容
+            this.promptDataMap.section = generatedContent.input;
+            this.setupPromptPopovers()
+            document.getElementById('generatedContent').textContent = generatedContent.output;
             this.saveSectionData();
         } catch (error) {
             console.error("Generation error:", error);
@@ -550,5 +652,6 @@ const SectionManager = {
         });
     }
 };
-
+// DOMContentLoaded 是一个 浏览器事件，它的作用是：当 HTML 被完全加载和解析完成 时，就会触发这个事件，
+// 当网页的 DOM 加载完成后，执行 SectionManager.init() 方法
 document.addEventListener('DOMContentLoaded', () => SectionManager.init());

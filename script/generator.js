@@ -1,6 +1,7 @@
 const prompts = {
     "summary": "[Role] Expert summarizer\n[Task] Summarize the following research paper content into a concise abstract (100-150 words).\n[Content]\nTitle: {title}\nAbstract: {abstract}\n\n[Instructions]\n1. Produce a clear, concise summary capturing the main points.\n2. Use an academic tone.\n3. If only a title is provided, infer a reasonable summary based on typical content for that title.\n4. Avoid adding fictitious details beyond reasonable inference.\n\n[Output Format]\n<Summary>",
     "outline": "[Role] Expert academic write\n[Paper Context]\nTitle: {title}\nType: {type}\nKeywords: {keywords}\nReference Sections: {supplementalContext}\n\n[Section Requirements]\nsectionHeading: {sectionHeading}\nMust Include:\n{keyPoints}\nLength: {length}\n\n[Instructions]\n1. Create a detailed outline for each paragraph in the section, based on the provided refernece {referneces}.\n2. Pay attention that the section is contained within a research paper, thus no introduction or conclusion is needed and only focus on the paragraphs serving for this section\n3. Output in concise and meaningful bullet point to guide paragraph writing. \n\n[Output Format]\n<Outline>",
+    "keyPoints": "[Role] Expert academic writer\n[Paper Context]\nTitle: {title}\nType: {type}\nKeywords: {keywords}\nReference Sections: {supplementalContext}\n\n[Section Requirements]\nsectionHeading: {sectionHeading}\n\n[Instructions]\n1. Based on the paper context (title, type, keywords, reference sections) and the provided references {references}, generate the key points that should be included in the section titled '{sectionHeading}'.\n2. The key points should be the main ideas, arguments, or findings that the section will convey, informed by the references and aligned with the paper's overall purpose.\n3. Ensure that the key points are logically connected and provide a coherent structure for the section.\n4. Output the key points in concise bullet points.\n\n[Output Format]\n<Key Points>",
     "allocateReferences": "[Role] Expert academic writer\n[Task] Allocate ALL provided references to the provided section outline based on relevance.\n[Outline]\n{outline}\n\n[References]\n{references}\n\n[Instructions]\n1. For each paragraph in outline, assign relevant references.\n2. Provide an extremely concise explanation for each allocation, including what content should be used.\n3. Strictly provide the citation format as provided in each refernece.\n4. ALL provided references must be used, and each reference can be repeated at most TWICE in the allocation.\n\n[Output Format]\n<Allocated References>\n- <Outline Paragraph>: <Reference Title> (<Explanation>) <Citation Format>\n...",
     "generateSection": "[Role] Expert academic writer composing a specific section for a research paper\n[Paper Context]\nTitle: {title}\nType: {type}\nKeywords: {keywords}\nPrevious Sections: {supplementalContext}\nStyle: {formalism} formalism for {audience}\n\n[Section Requirements]\nsectionHeading: {sectionHeading}\nMust Include:\n{keyPoints}\nLength: {length}\nOutline:\n{outline}\nAllocated References:\n{allocatedRefs}\n\n[Instructions]\n1. Write in {tone} academic tone\n2. Use {formalism} formalism\n3. Cite provided references with biblatex, using cite command. \n4. Follow the provided outline\n5. Structure content logically\n7. Include smooth transitions between paragraphs\n8. Strictly output {length} paragraphs\n9. Avoid using uncommon vocabularies or inappropriate structures\n10. Learn the writing style from {example}\n11. Make sure the references are cited within the writing, not at the end.\n\n[Output Format]\n<Section Heading>\n<Well-structured content>",
     "refineSection": "[Role] Expert academic writer\n[Paper Context]\nTitle: {title}\nType: {type}\nKeywords: {keywords}\nStyle: {formalism} formalism for {audience}\n\n[Section Requirements]\nsectionHeading: {sectionHeading}\nMust Include:\n{keyPoints}\nLength: {length}\n\n[Current Content]\n{currentContent}\n\n[User Comments]\n{comments}\n\n[Instructions]\n1. Revise the current content based on the user comments.\n2. Maintain the original structure and requirements.\n3. Use {tone} academic tone and {formalism} formalism.\n4. Cite sources as [Author, Year].\n\n[Output Format]\n<Section Heading>\n<Well-structured content>\n<Transition to next section>"
@@ -43,6 +44,27 @@ class SectionGenerator {
             .replace('{abstract}', abstract || 'No abstract provided');
     }
 
+    async generateKeyPoints(sectionData, context, references) {
+        console.log("sectionData",sectionData)
+        console.log("context",context)
+        const refsText = references.map(ref => `- ${ref.title} (${ref.citation})\n  ${ref.abstract.substring(0, 150)}...`).join('\n\n');
+        console.log("refsText",refsText)
+        const template = this.prompts.keyPoints;
+        const prompt = template
+            .replace('{title}', context.title || 'Untitled')
+            .replace('{type}', context.paperType || 'survey paper')
+            .replace('{keywords}', context.keywords?.join(', ') || 'none')
+            .replace('{sectionHeading}', sectionData.sectionContext)
+            .replace('{supplementalContext}', sectionData.supplementalContext || 'None')
+            .replace('{references}', refsText || 'None');
+
+        console.log("KeyPoint prompt:", prompt);
+        return {
+            input: prompt,
+            output: await this.callLLMAPI(prompt)
+        };
+    }
+
     async generateOutline(sectionData, context, references) {
         const refsText = references.map(ref => `- ${ref.title} (${ref.citation})\n  ${ref.abstract.substring(0, 150)}...`).join('\n\n');
 
@@ -60,8 +82,11 @@ class SectionGenerator {
             .replace('{supplementalContext}', sectionData.supplementalContext || 'None')
             .replace('{references}', refsText);
 
-        console.log("Outline prompt:", prompt);
-        return await this.callLLMAPI(prompt);
+        // console.log("Outline prompt:", prompt);
+        return {
+            input: prompt,
+            output: await this.callLLMAPI(prompt)
+        };
     }
 
     async allocateReferences(outline, references) {
@@ -70,7 +95,10 @@ class SectionGenerator {
         const prompt = template
             .replace('{outline}', outline)
             .replace('{references}', refsText);
-        return await this.callLLMAPI(prompt);
+        return {
+            input: prompt,
+            output: await this.callLLMAPI(prompt)
+        };
     }
 
     async generateSection(outline, allocatedRefs, sectionData, context) {
@@ -91,7 +119,10 @@ class SectionGenerator {
             .replace('{supplementalContext}', sectionData.supplementalContext || 'None')
             .replace('{example}', context.style?.example || 'none');
         console.log("Generate section prompt:", prompt);
-        return await this.callLLMAPI(prompt);
+        return {
+            input: prompt,
+            output: await this.callLLMAPI(prompt)
+        };
     }
 
     async refineSection(currentContent, comments, sectionData, context) {
@@ -112,5 +143,5 @@ class SectionGenerator {
         return await this.callLLMAPI(prompt);
     }
 }
-
+// 当整个 HTML 页面结构（DOM）加载完成之后，就自动执行 SectionManager.init() 这个初始化函数。
 document.addEventListener('DOMContentLoaded', () => SectionManager.init());
